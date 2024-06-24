@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿
 using System.Text;
-using System.Threading.Tasks;
-using System.IO;
 
 namespace csharp_7
 {
@@ -15,7 +11,12 @@ namespace csharp_7
         private string path;
         
 
-
+        /// <summary>
+        /// Рабочие из диапазона дат
+        /// </summary>
+        /// <param name="dateFrom"></param>
+        /// <param name="dateTo"></param>
+        /// <returns></returns>
         public Worker[] GetWorkersBetweenTwoDates(DateTime dateFrom, DateTime dateTo)
         {
             int firstID;
@@ -93,9 +94,23 @@ namespace csharp_7
                     note += $"{Console.ReadLine()}";
 
                     sw.WriteLine(note);
-                    Console.Write("Продолжить д/н"); key = Console.ReadKey(true).KeyChar;
+                    Console.Write("Продолжить заполнение таблицы д/н\n"); key = Console.ReadKey(true).KeyChar;
 
-                } while (char.ToLower(key) == 'д');
+                    if (note != string.Empty)
+                    {
+                        string[] words = note.Split('#');       //Массив слов
+
+                        AddWorkerToArray(new Worker(
+                            ID,                            //ID
+                            Convert.ToDateTime(words[0]),  //Дата добавления
+                            words[1],                      //Имя
+                            words[2],                      //Возраст
+                            words[3],                      //Рост
+                            words[4],                      //Дата рождения
+                            words[5]));                    //Город
+                        ID++;
+                    }
+                } while (char.ToLower(key) == 'д' || char.ToLower(key) == 'l');
             }
         }
 
@@ -131,6 +146,8 @@ namespace csharp_7
                     }
                 }
             }
+            Console.WriteLine(workers.Length);
+            Console.WriteLine(index);
             return workers;
         }
 
@@ -141,7 +158,7 @@ namespace csharp_7
         /// <param name="id"></param>
         public void GetWorkerById(int id)
         {
-            if (id < workers.Length + 1 && id > 0)
+            if (id < index + 1 && id > 0)
             {
                 for (int i = 0; i < workers.Length; i++)
                 {
@@ -164,29 +181,53 @@ namespace csharp_7
         /// <param name="id"></param>
         public void DeleteWorker(int id)
         {
+            int newIndex = 0;
+            Worker[] array = new Worker[index - 1];
+
             using (StreamWriter sw = new StreamWriter(path, false, Encoding.Unicode))
             {
-                if (id < workers.Length + 1 && id > 0)
+                string note = string.Empty;
+
+                for (int i = 0; i < index; i++)  //Прочесывание массива рабочих для нахождения нужного
                 {
-                    for (int i = 0; i < workers.Length; i++)  //Прочесывание массива рабочих для нахождения нужного
+                    if (workers[i].Id == id)
                     {
-                        if (workers[i].Id == id)
+                        for (int j = 0; j < index; j++) //Добавление всех рабочих, кроме нужного
                         {
-                            for(int j = 0; j < Count; j++) //Добавление всех рабочих, кроме нужного (workers.Length < workers.Length - 1 < Count)
+                            if (workers[j].Id != id)
                             {
-                                if (workers[j].Id != id)   //Count - сумма всех сотруников
-                                {
-                                    sw.WriteLine(workers[j].PrintDefault().TrimEnd());
-                                }
+                                note += $"{workers[j].PrintDefault()}\n";
                             }
                         }
                     }
                 }
-                else
+                sw.Write(note);
+
+                string[] lines = note.Split('\n');    //Массив строк
+                int ID = 1;
+                for (int i = 0; i < lines.Length; i++)
                 {
-                    Console.WriteLine("ID не найден");
+                    if (lines[i] != string.Empty)
+                    {
+                        string[] words = lines[i].Split('#');       //Массив слов
+
+                        array[i] = new Worker(
+                            ID,                            //ID
+                            Convert.ToDateTime(words[0]),  //Дата добавления
+                            words[1],                      //Имя
+                            words[2],                      //Возраст
+                            words[3],                      //Рост
+                            words[4],                      //Дата рождения
+                            words[5]);                    //Город
+                        ID++;
+                        newIndex++;
+                        Console.WriteLine(array[i].PrintDefault());
+                    }
                 }
             }
+            ID--;
+            workers = array;
+            index = newIndex;
         }
 
 
